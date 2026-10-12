@@ -1,0 +1,811 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Transit Planner | Intelligent Route Planning & Network Analysis</title>
+  
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet GIS for Google Maps & Satellite Layers -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="main-header">
+    <div class="container navbar">
+      <a href="#" class="brand-logo" data-tab="home">
+        <div class="brand-icon-wrapper">
+          <i class="fa-solid fa-bus-simple"></i>
+        </div>
+        <div class="brand-title">Public Transit <span>Planner</span></div>
+      </a>
+
+      <nav>
+        <ul class="nav-menu" id="main-nav-links">
+          <li><a href="#home" class="nav-link active" data-tab="home"><i class="fa-solid fa-house"></i> Home</a></li>
+          <li><a href="#plan" class="nav-link" data-tab="plan"><i class="fa-solid fa-diamond-turn-right"></i> Plan Route</a></li>
+          <li><a href="#routes" class="nav-link" data-tab="routes"><i class="fa-solid fa-route"></i> Routes</a></li>
+          <li><a href="#stops" class="nav-link" data-tab="stops"><i class="fa-solid fa-location-dot"></i> Stops</a></li>
+          <li><a href="#timetable" class="nav-link" data-tab="timetable"><i class="fa-regular fa-clock"></i> Timetable</a></li>
+          <li><a href="#dashboard" class="nav-link" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+          
+          <li><a href="#admin" class="nav-link" data-tab="admin"><i class="fa-solid fa-sliders"></i> Admin</a></li>
+          <li><a href="#about" class="nav-link" data-tab="about"><i class="fa-solid fa-circle-info"></i> About</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-primary btn-sm" data-switch-tab="plan">
+          <i class="fa-solid fa-compass"></i> Quick Plan
+        </button>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- TAB 1: HOME & HERO SECTION -->
+    <section id="tab-home" class="tab-panel active">
+      <div class="hero-section">
+        <div class="container hero-content-wrapper">
+          <div class="hero-text-col">
+            <div class="hero-tag">
+              <i class="fa-solid fa-bolt"></i> Real-Time Public Transit Navigation
+            </div>
+            <h1 class="hero-title">
+              Plan Smarter.<br>
+              <span class="highlight-text">Travel Better.</span>
+            </h1>
+            <p class="hero-subtitle">
+              Find efficient public transport routes with smart route planning, live intermediate stops, and network tracking. 
+              Optimize your journey considering travel time, distance, route coverage, intermediate stops, and operating costs.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button class="btn btn-primary" data-switch-tab="plan">
+                <i class="fa-solid fa-location-arrow"></i> Open Interactive Planner
+              </button>
+              <button class="btn btn-outline" data-switch-tab="timetable">
+                <i class="fa-regular fa-clock"></i> View Live Timetable
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Hero Planner Card -->
+          <div class="quick-planner-card">
+            <div class="quick-planner-header">
+              <div class="quick-planner-title">
+                <i class="fa-solid fa-bus text-primary"></i> Fast Journey Finder
+              </div>
+              <span class="status-badge status-green">Live Network</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="hero-source">Starting Location</label>
+              <select class="form-control" id="hero-source"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="hero-dest">Destination</label>
+              <select class="form-control" id="hero-dest"></select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Travel Date</label>
+                <input type="date" class="form-control" value="2026-09-19">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Departure Time</label>
+                <input type="time" class="form-control" value="08:30">
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-hero-plan" style="width: 100%; margin-top: 0.5rem;">
+              <i class="fa-solid fa-magnifying-glass-location"></i> Plan Route
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Routes Section -->
+      <div class="popular-routes-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Popular Transit Routes</h2>
+            <p class="section-subtitle">Frequently traveled corridors with verified intermediate stops and high bus frequency</p>
+          </div>
+
+          <div class="popular-routes-grid">
+            <!-- Card 1: Patancheru -> Bachupally -->
+            <div class="popular-route-card" data-source="patancheru" data-dest="bachupally">
+              <div>
+                <div class="card-route-arrow">
+                  <span class="status-badge status-blue">Route 218</span>
+                  <span class="status-badge status-green">Every 15m</span>
+                </div>
+                <div class="route-stop-chip">Patancheru → Bachupally</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <i class="fa-solid fa-route"></i> Via: BHEL, Miyapur, Nizampet
+                </div>
+              </div>
+              <div class="route-meta-mini">
+                <span><i class="fa-solid fa-road"></i> 24.5 km</span>
+                <span><i class="fa-regular fa-clock"></i> 48 mins</span>
+                <span class="text-primary fw-semibold" style="margin-left: auto;">Plan →</span>
+              </div>
+            </div>
+
+            <!-- Card 2: Patancheru -> Beeramguda -->
+            <div class="popular-route-card" data-source="patancheru" data-dest="beeramguda">
+              <div>
+                <div class="card-route-arrow">
+                  <span class="status-badge status-blue">Route 219</span>
+                  <span class="status-badge status-green">Every 12m</span>
+                </div>
+                <div class="route-stop-chip">Patancheru → Beeramguda</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <i class="fa-solid fa-route"></i> Via: Rameshwaram, Isnapur
+                </div>
+              </div>
+              <div class="route-meta-mini">
+                <span><i class="fa-solid fa-road"></i> 11.8 km</span>
+                <span><i class="fa-regular fa-clock"></i> 23 mins</span>
+                <span class="text-primary fw-semibold" style="margin-left: auto;">Plan →</span>
+              </div>
+            </div>
+
+            <!-- Card 3: Bachupally -> Patancheru -->
+            <div class="popular-route-card" data-source="bachupally" data-dest="patancheru">
+              <div>
+                <div class="card-route-arrow">
+                  <span class="status-badge status-blue">Route 218R</span>
+                  <span class="status-badge status-green">Every 15m</span>
+                </div>
+                <div class="route-stop-chip">Bachupally → Patancheru</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <i class="fa-solid fa-route"></i> Via: Nizampet, Miyapur, BHEL
+                </div>
+              </div>
+              <div class="route-meta-mini">
+                <span><i class="fa-solid fa-road"></i> 24.5 km</span>
+                <span><i class="fa-regular fa-clock"></i> 48 mins</span>
+                <span class="text-primary fw-semibold" style="margin-left: auto;">Plan →</span>
+              </div>
+            </div>
+
+            <!-- Card 4: Beeramguda -> Patancheru -->
+            <div class="popular-route-card" data-source="beeramguda" data-dest="patancheru">
+              <div>
+                <div class="card-route-arrow">
+                  <span class="status-badge status-blue">Route 219R</span>
+                  <span class="status-badge status-green">Every 12m</span>
+                </div>
+                <div class="route-stop-chip">Beeramguda → Patancheru</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                  <i class="fa-solid fa-route"></i> Via: Isnapur, Rameshwaram
+                </div>
+              </div>
+              <div class="route-meta-mini">
+                <span><i class="fa-solid fa-road"></i> 11.8 km</span>
+                <span><i class="fa-regular fa-clock"></i> 23 mins</span>
+                <span class="text-primary fw-semibold" style="margin-left: auto;">Plan →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- TAB 2: ROUTE PLANNER VIEW -->
+    <section id="tab-plan" class="tab-panel hidden">
+      <div class="container planner-view-layout">
+        <!-- Sidebar Controls & Summary -->
+        <div class="planner-sidebar">
+          <!-- Selection Card -->
+          <div class="planner-inputs-card">
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-route text-primary"></i> Route Planner
+            </h2>
+            <div class="stops-selector-group">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="planner-source"><i class="fa-solid fa-circle-dot text-primary"></i> Origin Stop</label>
+                <select class="form-control" id="planner-source"></select>
+              </div>
+
+              <button class="btn-swap" id="btn-swap-stops" title="Swap Origin and Destination">
+                <i class="fa-solid fa-arrows-up-down"></i>
+              </button>
+
+              <div class="form-group" style="margin-bottom: 0; margin-top: 0.5rem;">
+                <label class="form-label" for="planner-dest"><i class="fa-solid fa-location-dot text-success"></i> Destination Stop</label>
+                <select class="form-control" id="planner-dest"></select>
+              </div>
+            </div>
+
+            <!-- Routing Criteria -->
+            <div style="margin-top: 1rem;">
+              <label class="form-label">Route Optimization Goal</label>
+              <div class="criteria-selector-group">
+                <label class="criteria-label">
+                  <input type="radio" name="route-criterion" value="time" checked>
+                  <i class="fa-solid fa-bolt"></i> Fastest
+                </label>
+                <label class="criteria-label">
+                  <input type="radio" name="route-criterion" value="distance">
+                  <i class="fa-solid fa-road"></i> Shortest
+                </label>
+                <label class="criteria-label">
+                  <input type="radio" name="route-criterion" value="transfers">
+                  <i class="fa-solid fa-shuffle"></i> Direct
+                </label>
+                <label class="criteria-label">
+                  <input type="radio" name="route-criterion" value="cost">
+                  <i class="fa-solid fa-wallet"></i> Low Cost
+                </label>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-execute-plan" style="width: 100%; margin-top: 1.25rem;">
+              <i class="fa-solid fa-calculator"></i> Calculate Optimal Route
+            </button>
+          </div>
+
+          <!-- Route Summary Panel -->
+          <div id="route-summary-panel" class="route-summary-card">
+            <div class="summary-header">
+              <div>
+                <span style="font-size: 0.6875rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Recommended Journey</span>
+                <div class="summary-terminals-title">
+                  <span id="res-origin-name">Patancheru</span> <i class="fa-solid fa-arrow-right text-muted" style="font-size: 0.875rem;"></i> <span id="res-dest-name">Bachupally</span>
+                </div>
+              </div>
+              <span id="res-status-badge" class="status-badge status-green">
+                <span id="res-status">On Schedule</span>
+              </span>
+            </div>
+
+            <div class="kpi-metrics-grid-mini">
+              <div class="metric-box-mini">
+                <div class="metric-val-mini text-primary" id="res-total-time">48 mins</div>
+                <div class="metric-label-mini">Est. Time</div>
+              </div>
+              <div class="metric-box-mini">
+                <div class="metric-val-mini text-success" id="res-total-dist">24.5 km</div>
+                <div class="metric-label-mini">Distance</div>
+              </div>
+              <div class="metric-box-mini">
+                <div class="metric-val-mini" id="res-total-stops">5</div>
+                <div class="metric-label-mini">Total Stops</div>
+              </div>
+            </div>
+
+            <table class="route-spec-table">
+              <tbody>
+                <tr>
+                  <td>Transfers</td>
+                  <td id="res-transfers">Direct (0 Transfers)</td>
+                </tr>
+                <tr>
+                  <td>Suggested Bus / Route</td>
+                  <td id="res-suggested-bus">Route 218</td>
+                </tr>
+                <tr>
+                  <td>Estimated Operating Cost</td>
+                  <td id="res-operating-cost">₹780</td>
+                </tr>
+                <tr>
+                  <td>Passenger Fare</td>
+                  <td id="res-fare">₹45</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="dsa-badge-banner">
+              <i class="fa-solid fa-check-circle"></i>
+              <span id="res-dsa-stats">Optimal route verified • On schedule</span>
+            </div>
+
+            <!-- Google Maps External Directions Link -->
+            <a id="btn-open-google-maps-summary" target="_blank" class="btn btn-outline btn-sm" 
+               style="width: 100%; margin-top: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border-color: #cbd5e1; background: #ffffff;">
+              <i class="fa-brands fa-google text-primary" style="font-size: 1.1rem;"></i>
+              <span>Open Directions in Google Maps</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-muted" style="font-size: 0.75rem;"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Column: Visual Timeline & Network Canvas -->
+        <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+          <!-- Visual Route Timeline -->
+          <div class="timeline-section-card">
+            <div class="timeline-section-title">
+              <span><i class="fa-solid fa-list-ol text-primary"></i> Itinerary & Intermediate Stops Sequence</span>
+              <span class="status-badge status-blue" id="res-intermediate-count">3 intermediate stops</span>
+            </div>
+            <div class="route-timeline-container" id="route-timeline-container">
+              <!-- Dynamically populated timeline stops -->
+            </div>
+          </div>
+
+          <!-- Transport Network & Google Maps Panel -->
+          <div class="canvas-panel-wrapper">
+            <div class="canvas-toolbar">
+              <div class="canvas-title">
+                <i class="fa-solid fa-map-location-dot text-primary"></i> Live Transit Map
+              </div>
+              <div class="canvas-controls-group">
+                <!-- Mode Toggle: Google Maps vs Schematic -->
+                <div class="map-view-toggle-pill">
+                  <button class="btn btn-sm btn-ghost active" id="btn-mode-google-maps" title="Google Maps View">
+                    <i class="fa-brands fa-google text-primary"></i> Google Maps
+                  </button>
+                  <button class="btn btn-sm btn-ghost" id="btn-mode-schematic" title="Schematic Graph">
+                    <i class="fa-solid fa-circle-nodes"></i> Schematic
+                  </button>
+                </div>
+
+                <!-- Toggle Satellite Layer -->
+                <button class="btn btn-outline btn-sm" id="btn-toggle-map-layer" title="Toggle Satellite Layer">
+                  <i class="fa-solid fa-layer-group"></i> <span id="layer-mode-text">Satellite</span>
+                </button>
+
+                <button class="btn btn-outline btn-sm btn-icon" id="btn-map-fit" title="Fit Route Bounds">
+                  <i class="fa-solid fa-expand"></i>
+                </button>
+
+                <a id="btn-open-google-maps" target="_blank" class="btn btn-primary btn-sm" title="Open full route in Google Maps app" style="font-size: 0.8125rem;">
+                  <i class="fa-brands fa-google"></i> Google Maps App
+                </a>
+              </div>
+            </div>
+
+            <!-- 1. Google Maps Real Geographic Container -->
+            <div id="google-transit-map" style="width: 100%; height: 520px; z-index: 5;"></div>
+
+            <!-- 2. Schematic Canvas Container (Toggleable) -->
+            <div id="schematic-canvas-container" class="hidden" style="position: relative; width: 100%; height: 520px;">
+              <canvas id="transit-canvas"></canvas>
+            </div>
+
+            <div class="canvas-legend-bar">
+              <div class="legend-item"><span class="legend-color-dot" style="background: #1d4ed8;"></span> Origin Pin</div>
+              <div class="legend-item"><span class="legend-color-dot" style="background: #0284c7;"></span> Intermediate Stop</div>
+              <div class="legend-item"><span class="legend-color-dot" style="background: #059669;"></span> Destination Pin</div>
+              <div class="legend-item"><span class="legend-color-dot" style="background: #ef4444;"></span> High Demand</div>
+              <div class="legend-item"><span class="legend-color-dot" style="background: #1d4ed8; box-shadow: 0 0 5px #10b981;"></span> Planned Route Line</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- TAB 3: ROUTES DIRECTORY -->
+    <section id="tab-routes" class="tab-panel hidden">
+      <div class="container" style="padding: 2.5rem 1.5rem;">
+        <div class="directory-header-bar">
+          <div>
+            <h2 class="section-title" style="text-align: left;">Available Transit Corridors</h2>
+            <p class="section-subtitle">Browse full transit routes, verified intermediate stop sequences, and schedules</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="search-box-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="input-search-routes" class="form-control" placeholder="Search route, stop, or number...">
+            </div>
+            <div style="display: flex; border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden;">
+              <button class="btn btn-sm btn-ghost active" id="btn-routes-card-view" title="Card Grid View"><i class="fa-solid fa-grip"></i></button>
+              <button class="btn btn-sm btn-ghost" id="btn-routes-table-view" title="Table View"><i class="fa-solid fa-table-list"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Routes Grid View -->
+        <div class="routes-grid" id="routes-grid-container">
+          <!-- Dynamically populated route cards -->
+        </div>
+
+        <!-- Routes Table View (Hidden by default) -->
+        <div class="table-responsive-wrapper hidden" id="routes-table-container">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Route ID</th>
+                <th>Starting Stop</th>
+                <th>Destination</th>
+                <th>Intermediate Stops</th>
+                <th>Distance</th>
+                <th>Estimated Time</th>
+                <th>Frequency</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="routes-table-body">
+              <!-- Dynamically populated table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: STOPS DIRECTORY -->
+    <section id="tab-stops" class="tab-panel hidden">
+      <div class="container" style="padding: 2.5rem 1.5rem;">
+        <div class="directory-header-bar">
+          <div>
+            <h2 class="section-title" style="text-align: left;">Transit Network Stops (Graph Vertices)</h2>
+            <p class="section-subtitle">Strategic transit hubs, passenger demand ratings, and intermodal connectivity</p>
+          </div>
+          <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="input-search-stops" class="form-control" placeholder="Search stop by name, code, or zone...">
+          </div>
+        </div>
+
+        <div class="stops-grid" id="stops-grid-container">
+          <!-- Dynamically populated stop cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: TIMETABLE SCHEDULES -->
+    <section id="tab-timetable" class="tab-panel hidden">
+      <div class="container" style="padding: 2.5rem 1.5rem;">
+        <div class="directory-header-bar">
+          <div>
+            <h2 class="section-title" style="text-align: left;">Real-Time Fleet Timetable</h2>
+            <p class="section-subtitle">Live bus departures, frequency, seat occupancy, and service status</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <div class="search-box-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="input-search-timetable" class="form-control" placeholder="Filter by bus or route #...">
+            </div>
+            <select class="form-control" id="select-timetable-status" style="width: 170px;">
+              <option value="all">All Service Status</option>
+              <option value="On Time">On Time</option>
+              <option value="Boarding">Boarding</option>
+              <option value="Departing Soon">Departing Soon</option>
+              <option value="Minor Delay (4m)">Delayed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th>Bus Number</th>
+                <th>Departure Time</th>
+                <th>Arrival Time</th>
+                <th>Frequency</th>
+                <th>Available Seats</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="timetable-tbody">
+              <!-- Dynamically populated timetable rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <!-- TAB 6: DASHBOARD & PERFORMANCE ANALYSIS -->
+    <section id="tab-dashboard" class="tab-panel hidden">
+      <div class="container" style="padding: 2.5rem 1.5rem;">
+        <div class="section-header" style="text-align: left; margin-bottom: 1.75rem;">
+          <h2 class="section-title">Transit Network Analytics & KPIs</h2>
+          <p class="section-subtitle">Real-time performance metrics, passenger demand coverage, fleet efficiency, and operating costs</p>
+        </div>
+
+        <!-- 8 KPI Metrics Cards -->
+        <div class="dashboard-kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-blue"><i class="fa-solid fa-location-dot"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-total-stops">16</div>
+              <div class="kpi-label">Total Stops</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-green"><i class="fa-solid fa-route"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-total-routes">8</div>
+              <div class="kpi-label">Total Routes</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-amber"><i class="fa-solid fa-bus"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-active-buses">49</div>
+              <div class="kpi-label">Active Buses</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-purple"><i class="fa-solid fa-users"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-avg-demand">89%</div>
+              <div class="kpi-label">Passenger Demand</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-green"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-demand-coverage">93.8%</div>
+              <div class="kpi-label">Demand Coverage</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-blue"><i class="fa-regular fa-clock"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-avg-travel-time">41 mins</div>
+              <div class="kpi-label">Avg Travel Time</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-amber"><i class="fa-solid fa-gauge-high"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-fleet-utilization">86.0%</div>
+              <div class="kpi-label">Fleet Utilization</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon-box icon-purple"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div>
+              <div class="kpi-value" id="kpi-operating-cost">₹5,570</div>
+              <div class="kpi-label">Total Operating Cost</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Interactive Charts -->
+        <div class="dashboard-charts-grid">
+          <!-- Chart 1: Passenger Demand by Stop -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <span><i class="fa-solid fa-chart-column text-primary"></i> Passenger Demand by Key Stops</span>
+              <span class="status-badge status-blue">Top Terminals</span>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="chart-passenger-demand"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Fleet Status & Utilization -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <span><i class="fa-solid fa-chart-pie text-success"></i> Fleet Utilization & Route Status</span>
+              <span class="status-badge status-green">Active Operations</span>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="chart-fleet-status"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Hourly Passenger Flow -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <span><i class="fa-solid fa-chart-line text-primary"></i> Hourly Passenger Traffic Density</span>
+              <span class="status-badge status-blue">24h Flow</span>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="chart-hourly-traffic"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Route Efficiency & Cost Comparison -->
+          <div class="chart-card">
+            <div class="chart-title">
+              <span><i class="fa-solid fa-scale-balanced text-amber"></i> Route Speed vs Operating Cost</span>
+              <span class="status-badge status-blue">Corridor Efficiency</span>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="chart-route-efficiency"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 8: ADMIN & PLANNER PANEL -->
+    <section id="tab-admin" class="tab-panel hidden">
+      <div class="container" style="padding: 2.5rem 1.5rem;">
+        <div class="directory-header-bar">
+          <div>
+            <h2 class="section-title" style="text-align: left;">Transit Authority / Administrator Console</h2>
+            <p class="section-subtitle">Manage graph vertices, add custom routes with intermediate stops, update fleet parameters, and reset state</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn btn-outline btn-sm" id="btn-export-data"><i class="fa-solid fa-download"></i> Export Network JSON</button>
+            <button class="btn btn-ghost btn-sm text-danger" id="btn-reset-demo-data"><i class="fa-solid fa-arrow-rotate-left"></i> Restore Factory Defaults</button>
+          </div>
+        </div>
+
+        <div class="admin-grid-layout">
+          <!-- Form 1: Add New Stop -->
+          <div class="admin-card">
+            <h3 class="admin-card-title"><i class="fa-solid fa-location-plus text-primary"></i> Add New Transit Stop (Graph Vertex)</h3>
+            <form id="form-add-stop">
+              <div class="form-group">
+                <label class="form-label" for="new-stop-name">Stop Name</label>
+                <input type="text" id="new-stop-name" class="form-control" placeholder="e.g. Kondapur Junction" required>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="new-stop-code">Stop Code</label>
+                  <input type="text" id="new-stop-code" class="form-control" placeholder="e.g. KND-17">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-stop-zone">Zone</label>
+                  <select id="new-stop-zone" class="form-control">
+                    <option value="West Zone">West Zone</option>
+                    <option value="North-West Zone">North-West Zone</option>
+                    <option value="IT Corridor">IT Corridor</option>
+                    <option value="Central Zone">Central Zone</option>
+                    <option value="East Zone">East Zone</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="new-stop-demand">Passenger Demand</label>
+                  <select id="new-stop-demand" class="form-control">
+                    <option value="High">High Demand</option>
+                    <option value="Medium" selected>Medium Demand</option>
+                    <option value="Low">Low Demand</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-stop-importance">Importance Level</label>
+                  <select id="new-stop-importance" class="form-control">
+                    <option value="Terminal Hub">Terminal Hub</option>
+                    <option value="Major Junction">Major Junction</option>
+                    <option value="Transit Station" selected>Transit Station</option>
+                    <option value="Local Stop">Local Stop</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="new-stop-landmark">Key Landmark / Physical Feature</label>
+                <input type="text" id="new-stop-landmark" class="form-control" placeholder="e.g. Near RTA Office, Botanical Garden Road">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-plus-circle"></i> Register Stop in Graph
+              </button>
+            </form>
+          </div>
+
+          <!-- Form 2: Add New Route -->
+          <div class="admin-card">
+            <h3 class="admin-card-title"><i class="fa-solid fa-route text-success"></i> Add New Route & Intermediate Sequence</h3>
+            <form id="form-add-route">
+              <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="new-route-number">Route Number</label>
+                  <input type="text" id="new-route-number" class="form-control" placeholder="e.g. 280" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-route-name">Route Name</label>
+                  <input type="text" id="new-route-name" class="form-control" placeholder="e.g. Express City Feeder">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="new-route-source">Origin Stop</label>
+                  <select id="new-route-source" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-route-dest">Destination Stop</label>
+                  <select id="new-route-dest" class="form-control" required></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="new-route-intermediates">Intermediate Stops (Comma-separated exact sequence)</label>
+                <input type="text" id="new-route-intermediates" class="form-control" placeholder="e.g. Stop Alpha, Stop Beta, Stop Gamma">
+                <small style="font-size: 0.75rem; color: var(--text-muted);">Specify unique intermediate stops for this route corridor.</small>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="new-route-distance">Distance (km)</label>
+                  <input type="number" step="0.1" id="new-route-distance" class="form-control" placeholder="18.5" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-route-duration">Time (mins)</label>
+                  <input type="number" id="new-route-duration" class="form-control" placeholder="35" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-route-buses">Buses</label>
+                  <input type="number" id="new-route-buses" class="form-control" placeholder="5" value="4">
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="new-route-frequency">Frequency</label>
+                  <input type="text" id="new-route-frequency" class="form-control" placeholder="Every 15 mins" value="Every 15 mins">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="new-route-cost">Operating Cost (₹)</label>
+                  <input type="number" id="new-route-cost" class="form-control" placeholder="650" value="650">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success" style="width: 100%;">
+                <i class="fa-solid fa-plus-circle"></i> Create Route Corridor
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 9: ABOUT & ARCHITECTURE -->
+    <section id="tab-about" class="tab-panel hidden">
+      <div class="container" style="padding: 3rem 1.5rem; max-width: 900px;">
+        <div class="admin-card" style="padding: 2.5rem;">
+          <h2 class="section-title" style="margin-bottom: 1rem;">About Public Transit Planner</h2>
+          <p style="color: var(--text-muted); font-size: 1.0625rem; line-height: 1.7; margin-bottom: 1.5rem;">
+            <strong>Public Transit Planner</strong> is an intelligent, full-stack public transit routing platform.
+            It provides commuters, urban planners, and municipal transport authorities with optimal journey calculation,
+            network capacity visualization, and operating cost analysis.
+          </p>
+
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-top: 1.5rem; margin-bottom: 0.75rem;">
+            Core Platform Highlights
+          </h3>
+          <ul style="color: var(--text-main); line-height: 1.8; margin-left: 1.5rem; margin-bottom: 1.5rem;">
+            <li><strong>Intelligent Network Modeling:</strong> Full transit network connecting terminals, interchanges, and suburban corridors.</li>
+            <li><strong>Exact Intermediate Stops:</strong> Every route maintains its ordered sequence of transit points without collision.</li>
+            <li><strong>Multi-Criteria Routing:</strong> Users can dynamically toggle between shortest travel duration, minimum transfer count, lowest fare, and minimal physical distance.</li>
+            <li><strong>Live Fleet Analytics:</strong> Real-time timetable, occupancy tracking, and network performance indicators.</li>
+          </ul>
+
+          <div style="background: var(--bg-page); border-left: 4px solid var(--success); padding: 1.25rem; border-radius: var(--radius-sm); margin-top: 1.5rem;">
+            <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.25rem;"><i class="fa-solid fa-lightbulb text-success"></i> Standalone & Lightweight</h4>
+            <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
+              Zero compilation steps or complex backend requirements. The entire application runs natively in any standard web browser or Visual Studio Code with HTML5, CSS3, and ES6 modules.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Global Footer -->
+  <footer style="background: #ffffff; border-top: 1px solid var(--border-color); padding: 2rem 0; margin-top: auto;">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.8125rem; color: var(--text-muted);">
+      <div>
+        <strong>Public Transit Planner</strong> — Intelligent Public Transit Route Planning System.
+      </div>
+      <div style="display: flex; gap: 1.25rem;">
+        <span><i class="fa-solid fa-circle-nodes text-primary"></i> Smart Routing</span>
+        <span><i class="fa-solid fa-bus text-success"></i> Live Fleet Timetable</span>
+        <span><i class="fa-solid fa-bolt text-amber"></i> Route Optimization</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Toast Notification System -->
+  <div id="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/dsa.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/network-canvas.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/google-map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
